@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>China & HK Tech Expo Hub</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Tech Expo Hub">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+body { margin:0; font-family:Arial; background:#0f172a; color:white; }
+header { text-align:center; padding:15px; background:#1e293b; }
+h1 { font-size:18px; }
+.filters { display:flex; flex-wrap:wrap; gap:6px; padding:10px; justify-content:center; }
+select, input, button { padding:7px; border-radius:6px; border:none; margin:2px; }
+.container { display:grid; grid-template-columns:1fr; gap:10px; padding:10px; }
+.card { background:#1e293b; padding:12px; border-radius:10px; }
+.tag { font-size:11px; padding:3px 6px; border-radius:5px; }
+.ev { background:green; }
+.electronics { background:blue; }
+.it { background:purple; }
+.ai { background:orange; }
+@media(min-width:600px){ .container { grid-template-columns:repeat(2,1fr); } }
+.toast {
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#1e293b;
+  padding:10px 20px;
+  border-radius:10px;
+  display:none;
+  z-index:999;
+}
+</style>
+</head>
+<body>
+<header>
+<h1>🌏 China & Hong Kong Tech Expo Hub</h1>
+</header>
+<div class="filters">
+<input id="search" placeholder="Search...">
+<select id="category">
+<option value="all">All Tech</option>
+<option value="EV">EV</option>
+<option value="Electronics">Electronics</option>
+<option value="IT">IT</option>
+<option value="AI">AI</option>
+</select>
+<select id="location">
+<option value="all">All Locations</option>
+<option value="China">China</option>
+<option value="Hong Kong">Hong Kong</option>
+</select>
+</div>
+<div class="container" id="events"></div>
+<div class="toast" id="toast">App Installed! You can use it offline.</div>
+<script>
+const events = [
+{name:"electronica China", type:"Electronics", place:"China", city:"Shanghai", start:"2026-07-01", end:"2026-07-03"},
+{name:"CITE", type:"IT", place:"China", city:"Shenzhen", start:"2026-04-09", end:"2026-04-11"},
+{name:"CINEVE", type:"EV", place:"China", city:"Beijing", start:"2026-03-13", end:"2026-03-16"},
+{name:"AutoTech Mobility", type:"AI", place:"China", city:"Shenzhen", start:"2026-03-20", end:"2026-03-23"},
+{name:"CIOE", type:"Electronics", place:"China", city:"Shenzhen", start:"2026-09-09", end:"2026-09-11"},
+{name:"HK Electronics Fair (Spring)", type:"Electronics", place:"Hong Kong", start:"2026-04-13", end:"2026-04-16"},
+{name:"HK Electronics Fair (Autumn)", type:"Electronics", place:"Hong Kong", start:"2026-10-13", end:"2026-10-16"},
+{name:"Hong Kong ICT Expo", type:"IT", place:"Hong Kong", start:"2026-04-13", end:"2026-04-16"},
+{name:"InnoEX", type:"AI", place:"Hong Kong", start:"2026-04-13", end:"2026-04-16"}
+];
+const container = document.getElementById("events");
+function render(list){
+container.innerHTML="";
+list.forEach(e=>{
+  const div=document.createElement("div");
+  div.className="card";
+  div.innerHTML=`
+    <h3>${e.name}</h3>
+    <p>📍 ${e.city || e.place}</p>
+    <p>📅 ${e.start} - ${e.end}</p>
+    <span class="tag">${e.type}</span><br><br>
+    <button onclick='addToCalendar(${JSON.stringify(e)})'>📅 Add to Calendar</button>
+  `;
+  container.appendChild(div);
+});
+}
+render(events);
+document.getElementById("category").addEventListener("change", filter);
+document.getElementById("location").addEventListener("change", filter);
+document.getElementById("search").addEventListener("input", filter);
+function filter(){
+const cat=document.getElementById("category").value;
+const loc=document.getElementById("location").value;
+const search=document.getElementById("search").value.toLowerCase();
+const filtered=events.filter(e=>(cat==="all"||e.type===cat)&&(loc==="all"||e.place===loc)&&e.name.toLowerCase().includes(search));
+render(filtered);
+}
+function addToCalendar(event){
+const formatDate=d=>d.replace(/-/g,"")+"T090000";
+const ics=`BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:${event.name}
+DTSTART:${formatDate(event.start)}
+DTEND:${formatDate(event.end)}
+LOCATION:${event.city||event.place}
+DESCRIPTION:Tech Expo Event
+END:VEVENT
+END:VCALENDAR
+`;
+const blob=new Blob([ics],{type:'text/calendar'});
+const url=URL.createObjectURL(blob);
+const link=document.createElement("a");
+link.href=url;
+link.download=event.name+".ics";
+link.click();
+}
+if('serviceWorker' in navigator){
+navigator.serviceWorker.register('sw.js').then(()=>console.log("SW Registered"));
+}
+window.addEventListener('appinstalled', ()=> {
+  const toast = document.getElementById("toast");
+  toast.style.display="block";
+  setTimeout(()=>toast.style.display="none",3000);
+});
+</script>
+</body>
+</html>
