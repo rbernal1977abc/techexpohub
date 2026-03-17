@@ -36,10 +36,13 @@ select, input, button { padding:7px; border-radius:6px; border:none; margin:2px;
 }
 </style>
 </head>
+
 <body>
+
 <header>
 <h1>🌏 China & Hong Kong Tech Expo Hub</h1>
 </header>
+
 <div class="filters">
 <input id="search" placeholder="Search...">
 <select id="category">
@@ -55,53 +58,57 @@ select, input, button { padding:7px; border-radius:6px; border:none; margin:2px;
 <option value="Hong Kong">Hong Kong</option>
 </select>
 </div>
+
 <div class="container" id="events"></div>
 <div class="toast" id="toast">App Installed! You can use it offline.</div>
+
 <script>
-
-const events = [
-  {name:"electronica China", type:"Electronics", place:"China", city:"Shanghai", start:"2026-07-01", end:"2026-07-03", url:"https://www.electronica-china.com/"},
-  {name:"CITE", type:"IT", place:"China", city:"Shenzhen", start:"2026-04-09", end:"2026-04-11", url:"https://www.citexpo.com/"},
-  {name:"CINEVE", type:"EV", place:"China", city:"Beijing", start:"2026-03-13", end:"2026-03-16", url:"https://www.cineve.com/"},
-  {name:"AutoTech Mobility", type:"AI", place:"China", city:"Shenzhen", start:"2026-03-20", end:"2026-03-23", url:"https://www.autotech-mobility.com/"},
-  {name:"CIOE", type:"Electronics", place:"China", city:"Shenzhen", start:"2026-09-09", end:"2026-09-11", url:"https://www.cioe.com/"},
-  {name:"HK Electronics Fair (Spring)", type:"Electronics", place:"Hong Kong", start:"2026-04-13", end:"2026-04-16", url:"https://m.hktdc.com/fair/hkelectronicsfair-spring/en/"},
-  {name:"HK Electronics Fair (Autumn)", type:"Electronics", place:"Hong Kong", start:"2026-10-13", end:"2026-10-16", url:"https://m.hktdc.com/fair/hkelectronicsfair-autumn/en/"},
-  {name:"Hong Kong ICT Expo", type:"IT", place:"Hong Kong", start:"2026-04-13", end:"2026-04-16", url:"https://www.hkictexpo.com/"},
-  {name:"InnoEX", type:"AI", place:"Hong Kong", start:"2026-04-13", end:"2026-04-16", url:"https://www.inno-expo.com/"}
-];
-
+let events = [];
 const container = document.getElementById("events");
-function render(list){
-container.innerHTML="";
-list.forEach(e=>{
-  const div=document.createElement("div");
-  div.className="card";
-  div.innerHTML=`
-    <h3>${e.name}</h3>
-    <p>📍 ${e.city || e.place}</p>
-    <p>📅 ${e.start} - ${e.end}</p>
-    <span class="tag">${e.type}</span><br><br>
-    <button onclick='addToCalendar(${JSON.stringify(e)})'>📅 Add to Calendar</button>
-    ${e.url ? `<a href=\"${e.url}\" target=\"_blank\"><button>🌐 Official Page</button></a>` : ""}
-  `;
-  container.appendChild(div);
-});
+
+async function loadEvents(){
+  try{
+    const res = await fetch('events.json');
+    const data = await res.json();
+    events = data.filter(e => !e.finished); // hide finished events
+    render(events);
+  }catch(err){
+    console.error("Failed to load events", err);
+  }
 }
-render(events);
+
+function render(list){
+  container.innerHTML="";
+  list.forEach(e=>{
+    const div=document.createElement("div");
+    div.className="card";
+    div.innerHTML=`
+      <h3>${e.name}</h3>
+      <p>📍 ${e.city || e.place}</p>
+      <p>📅 ${e.start} - ${e.end}</p>
+      <span class="tag">${e.type}</span><br><br>
+      <button onclick='addToCalendar(${JSON.stringify(e)})'>📅 Add to Calendar</button>
+      ${e.url ? `<a href="${e.url}" target="_blank"><button>🌐 Official Page</button></a>` : ""}
+    `;
+    container.appendChild(div);
+  });
+}
+
 document.getElementById("category").addEventListener("change", filter);
 document.getElementById("location").addEventListener("change", filter);
 document.getElementById("search").addEventListener("input", filter);
+
 function filter(){
-const cat=document.getElementById("category").value;
-const loc=document.getElementById("location").value;
-const search=document.getElementById("search").value.toLowerCase();
-const filtered=events.filter(e=>(cat==="all"||e.type===cat)&&(loc==="all"||e.place===loc)&&e.name.toLowerCase().includes(search));
-render(filtered);
+  const cat=document.getElementById("category").value;
+  const loc=document.getElementById("location").value;
+  const search=document.getElementById("search").value.toLowerCase();
+  const filtered=events.filter(e=>!e.finished&&(cat==="all"||e.type===cat)&&(loc==="all"||e.place===loc)&&e.name.toLowerCase().includes(search));
+  render(filtered);
 }
+
 function addToCalendar(event){
-const formatDate=d=>d.replace(/-/g,"")+"T090000";
-const ics=`BEGIN:VCALENDAR
+  const formatDate=d=>d.replace(/-/g,"")+"T090000";
+  const ics=`BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
 SUMMARY:${event.name}
@@ -112,21 +119,26 @@ DESCRIPTION:Tech Expo Event
 END:VEVENT
 END:VCALENDAR
 `;
-const blob=new Blob([ics],{type:'text/calendar'});
-const url=URL.createObjectURL(blob);
-const link=document.createElement("a");
-link.href=url;
-link.download=event.name+".ics";
-link.click();
+  const blob=new Blob([ics],{type:'text/calendar'});
+  const url=URL.createObjectURL(blob);
+  const link=document.createElement("a");
+  link.href=url;
+  link.download=event.name+".ics";
+  link.click();
 }
+
 if('serviceWorker' in navigator){
-navigator.serviceWorker.register('sw.js').then(()=>console.log("SW Registered"));
+  navigator.serviceWorker.register('sw.js').then(()=>console.log("SW Registered"));
 }
+
 window.addEventListener('appinstalled', ()=> {
   const toast = document.getElementById("toast");
   toast.style.display="block";
   setTimeout(()=>toast.style.display="none",3000);
 });
+
+loadEvents();
 </script>
+
 </body>
 </html>
