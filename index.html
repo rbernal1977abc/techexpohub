@@ -1,143 +1,79 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>China & HK Tech Expo Hub</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Tech Expo Hub">
-<link rel="apple-touch-icon" href="icon-192.png">
+<title>Tech Expo Hub Pro</title>
 <style>
-body { margin:0; font-family:Arial; background:#0f172a; color:white; }
-header { text-align:center; padding:15px; background:#1e293b; }
-h1 { font-size:18px; }
-.filters { display:flex; flex-wrap:wrap; gap:6px; padding:10px; justify-content:center; }
-select, input, button { padding:7px; border-radius:6px; border:none; margin:2px; }
-.container { display:grid; grid-template-columns:1fr; gap:10px; padding:10px; }
-.card { background:#1e293b; padding:12px; border-radius:10px; }
-.tag { font-size:11px; padding:3px 6px; border-radius:5px; }
-.ev { background:green; }
-.electronics { background:blue; }
-.it { background:purple; }
-.ai { background:orange; }
-@media(min-width:600px){ .container { grid-template-columns:repeat(2,1fr); } }
-.toast {
-  position:fixed;
-  bottom:20px;
-  left:50%;
-  transform:translateX(-50%);
-  background:#1e293b;
-  padding:10px 20px;
-  border-radius:10px;
-  display:none;
-  z-index:999;
-}
+body{background:#0f172a;color:white;font-family:Arial;margin:0}
+header{padding:15px;text-align:center;background:#1e293b}
+.card{background:#1e293b;margin:10px;padding:10px;border-radius:10px}
+button{margin-top:5px;padding:6px;border:none;border-radius:6px}
 </style>
 </head>
-
 <body>
 
 <header>
-<h1>🌏 China & Hong Kong Tech Expo Hub</h1>
+<h2>🌏 Tech Expo Hub Pro</h2>
+<input id="search" placeholder="Search events..." style="padding:6px;width:80%">
 </header>
 
-<div class="filters">
-<input id="search" placeholder="Search...">
-<select id="category">
-<option value="all">All Tech</option>
-<option value="EV">EV</option>
-<option value="Electronics">Electronics</option>
-<option value="IT">IT</option>
-<option value="AI">AI</option>
-</select>
-<select id="location">
-<option value="all">All Locations</option>
-<option value="China">China</option>
-<option value="Hong Kong">Hong Kong</option>
-</select>
-</div>
-
-<div class="container" id="events"></div>
-<div class="toast" id="toast">App Installed! You can use it offline.</div>
+<div id="events"></div>
 
 <script>
-let events = [];
-const container = document.getElementById("events");
+let events=[];
 
-async function loadEvents(){
-  try{
-    const res = await fetch('events.json');
-    const data = await res.json();
-    events = data.filter(e => !e.finished); // hide finished events
-    render(events);
-  }catch(err){
-    console.error("Failed to load events", err);
-  }
+async function load(){
+ let res=await fetch('events.json');
+ events=await res.json();
+ render();
 }
 
-function render(list){
-  container.innerHTML="";
-  list.forEach(e=>{
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerHTML=`
-      <h3>${e.name}</h3>
-      <p>📍 ${e.city || e.place}</p>
-      <p>📅 ${e.start} - ${e.end}</p>
-      <span class="tag">${e.type}</span><br><br>
-      <button onclick='addToCalendar(${JSON.stringify(e)})'>📅 Add to Calendar</button>
-      ${e.url ? `<a href="${e.url}" target="_blank"><button>🌐 Official Page</button></a>` : ""}
-    `;
-    container.appendChild(div);
-  });
+function render(){
+ let s=document.getElementById('search').value.toLowerCase();
+ let html='';
+ events.filter(e=>!e.finished && e.name.toLowerCase().includes(s))
+ .forEach(e=>{
+  html+=`
+  <div class="card">
+   <b>${e.name}</b><br>
+   ${e.city||e.place}<br>
+   ${e.start} - ${e.end}<br>
+   <button onclick='cal(${JSON.stringify(e)})'>📅 Calendar</button>
+   <a href="${e.url}" target="_blank"><button>🌐 Link</button></a>
+   <button onclick="map('${e.city||e.place}')">🧭 Map</button>
+  </div>`;
+ });
+ document.getElementById('events').innerHTML=html;
 }
 
-document.getElementById("category").addEventListener("change", filter);
-document.getElementById("location").addEventListener("change", filter);
-document.getElementById("search").addEventListener("input", filter);
-
-function filter(){
-  const cat=document.getElementById("category").value;
-  const loc=document.getElementById("location").value;
-  const search=document.getElementById("search").value.toLowerCase();
-  const filtered=events.filter(e=>!e.finished&&(cat==="all"||e.type===cat)&&(loc==="all"||e.place===loc)&&e.name.toLowerCase().includes(search));
-  render(filtered);
-}
-
-function addToCalendar(event){
-  const formatDate=d=>d.replace(/-/g,"")+"T090000";
-  const ics=`BEGIN:VCALENDAR
+function cal(e){
+ let d=x=>x.replace(/-/g,'')+"T090000";
+ let ics=`BEGIN:VCALENDAR
 VERSION:2.0
 BEGIN:VEVENT
-SUMMARY:${event.name}
-DTSTART:${formatDate(event.start)}
-DTEND:${formatDate(event.end)}
-LOCATION:${event.city||event.place}
-DESCRIPTION:Tech Expo Event
+SUMMARY:${e.name}
+DTSTART:${d(e.start)}
+DTEND:${d(e.end)}
+LOCATION:${e.city||e.place}
 END:VEVENT
-END:VCALENDAR
-`;
-  const blob=new Blob([ics],{type:'text/calendar'});
-  const url=URL.createObjectURL(blob);
-  const link=document.createElement("a");
-  link.href=url;
-  link.download=event.name+".ics";
-  link.click();
+END:VCALENDAR`;
+ let blob=new Blob([ics],{type:'text/calendar'});
+ let a=document.createElement('a');
+ a.href=URL.createObjectURL(blob);
+ a.download=e.name+".ics";
+ a.click();
 }
 
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').then(()=>console.log("SW Registered"));
+function map(loc){
+ window.open("https://www.google.com/maps/search/"+loc);
 }
 
-window.addEventListener('appinstalled', ()=> {
-  const toast = document.getElementById("toast");
-  toast.style.display="block";
-  setTimeout(()=>toast.style.display="none",3000);
-});
+document.getElementById('search').addEventListener('input',render);
 
-loadEvents();
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js')}
+
+load();
 </script>
 
 </body>

@@ -1,11 +1,1 @@
-[
-  {"name":"electronica China","type":"Electronics","place":"China","city":"Shanghai","start":"2026-07-01","end":"2026-07-03","url":"https://www.electronica-china.com/","finished":false},
-  {"name":"CITE","type":"IT","place":"China","city":"Shenzhen","start":"2026-04-09","end":"2026-04-11","url":"https://www.citexpo.com/","finished":false},
-  {"name":"CINEVE","type":"EV","place":"China","city":"Beijing","start":"2026-03-13","end":"2026-03-16","url":"https://www.cineve.com/","finished":true},
-  {"name":"AutoTech Mobility","type":"AI","place":"China","city":"Shenzhen","start":"2026-03-20","end":"2026-03-23","url":"https://www.autotech-mobility.com/","finished":false},
-  {"name":"CIOE","type":"Electronics","place":"China","city":"Shenzhen","start":"2026-09-09","end":"2026-09-11","url":"https://www.cioe.com/","finished":false},
-  {"name":"HK Electronics Fair (Spring)","type":"Electronics","place":"Hong Kong","start":"2026-04-13","end":"2026-04-16","url":"https://m.hktdc.com/fair/hkelectronicsfair-spring/en/","finished":false},
-  {"name":"HK Electronics Fair (Autumn)","type":"Electronics","place":"Hong Kong","start":"2026-10-13","end":"2026-10-16","url":"https://m.hktdc.com/fair/hkelectronicsfair-autumn/en/","finished":false},
-  {"name":"Hong Kong ICT Expo","type":"IT","place":"Hong Kong","start":"2026-04-13","end":"2026-04-16","url":"https://www.hkictexpo.com/","finished":false},
-  {"name":"InnoEX","type":"AI","place":"Hong Kong","start":"2026-04-13","end":"2026-04-16","url":"https://www.inno-expo.com/","finished":false}
-]
+[{"name": "electronica China", "place": "China", "city": "Shanghai", "start": "2026-07-01", "end": "2026-07-03", "url": "https://www.electronica-china.com/", "finished": false}, {"name": "CITE", "place": "China", "city": "Shenzhen", "start": "2026-04-09", "end": "2026-04-11", "url": "https://www.citexpo.com/", "finished": false}, {"name": "HK Electronics Fair", "place": "Hong Kong", "city": "Hong Kong", "start": "2026-04-13", "end": "2026-04-16", "url": "https://m.hktdc.com", "finished": false}]
